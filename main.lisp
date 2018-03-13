@@ -6,28 +6,80 @@
 ## 2. move disc n from A -> C
 ## 3. move n-1 dics from B -> C
 
-(defun integer-sequence(start end)
+
+(defun initialize-start-tower(start end)
   (loop for x from start to end
-    collect x)
+    collect x into return-list
+    finally (return-from initialize-start-tower (reverse return-list))
   )
+)
 
+(defun get-tower(towers i) 
+  (nth (- i 1) towers)
+)
 
-(defun hanoi-solver(n source dest aux)
+(defun initialize-towers(n)
+  (setq tower-one  (initialize-start-tower 1 n))
+  (list tower-one '() '())
+)
+
+(defun reconstruct-towers(source aux dest)
+  (list source aux dest)
+)
+
+(defun update-tower(towers i tower)
   (cond
-   ((> n 0)
-   (hanoi-solver (- n 1) source aux dest)
-   (append dest (pop source))
-    (format t "Source: [~a] , Aux: [~a], Dest: [~a] ~%" source aux dest)
-   (hanoi-solver (- n 1) aux dest source)
+    ((= i 1) (reconstruct-towers tower (get-tower towers 2) (get-tower towers 3)))
+    ((= i 2) (reconstruct-towers  (get-tower towers 1) tower (get-tower towers 3)))
+    ((= i 3) (reconstruct-towers (get-tower towers 1) (get-tower towers 2) tower))
+  )
+)    
+
+(defun get-top(towers i)
+  (setq param (get-tower towers i))
+  (pop param)
+)
+
+(defun pop-top(towers i)
+  (setq param (get-tower towers i))
+  (update-tower towers i (cdr param))
+ )
+
+(defun push-top(towers i disk)
+  (setq param (get-tower towers i))
+  (update-tower towers i (push disk param))
+)
+
+(defun move-disk(source dest towers) 
+  (let 
+    ((top-disk (get-top towers source)) 
+      (towers-tmp (pop-top towers source)))
+    (push-top towers-tmp dest top-disk)
    )
   )
- )
+
+               
+ (defun hanoi-solver(n source aux dest towers)
+  (format t "params: [~a] [~a] [~a] [~a] [~a] ~%" n source aux dest towers)
+  (cond
+   ((> n 0)
+   (hanoi-solver (- n 1) source dest aux towers)
+   (move-disk source dest towers)
+   (format t "move [~a] from [~a] to [~a] ~%" (nth 0 (get-tower towers 1)) source dest)
+   (hanoi-solver (- n 1) aux source dest towers)
+   )
+  )
+)
+                   
 
 
 (defun towers-of-hanoi(n)
-  (setq int-list (reverse (integer-sequence 1 n)))
-  (hanoi-solver n int-list '() '())
-   (print int-list)
-  )
+  (hanoi-solver n 1 2 3 (initialize-towers n))
+)
 
 (towers-of-hanoi 3)
+
+
+(setq towers '((3 2 1) NIL NIL))
+(move-disk 1 2 towers)
+
