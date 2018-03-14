@@ -10,7 +10,7 @@
 (defun initialize-start-tower(start end)
   (loop for x from start to end
     collect x into return-list
-    finally (return-from initialize-start-tower (reverse return-list))
+    finally (return-from initialize-start-tower return-list)
   )
 )
 
@@ -30,7 +30,7 @@
 (defun update-tower(towers i tower)
   (cond
     ((= i 1) (reconstruct-towers tower (get-tower towers 2) (get-tower towers 3)))
-    ((= i 2) (reconstruct-towers  (get-tower towers 1) tower (get-tower towers 3)))
+    ((= i 2) (reconstruct-towers (get-tower towers 1) tower (get-tower towers 3)))
     ((= i 3) (reconstruct-towers (get-tower towers 1) (get-tower towers 2) tower))
   )
 )    
@@ -53,33 +53,36 @@
 (defun move-disk(source dest towers) 
   (let 
     ((top-disk (get-top towers source)) 
-      (towers-tmp (pop-top towers source)))
-    (push-top towers-tmp dest top-disk)
+     (towers-tmp (pop-top towers source)))
+     
+     (format t "~% move [~a] from [~a] to [~a]" top-disk source dest) 
+     (push-top towers-tmp dest top-disk)
    )
   )
 
                
  (defun hanoi-solver(n source aux dest towers)
-  (format t "params: [~a] [~a] [~a] [~a] [~a] ~%" n source aux dest towers)
   (cond
-   ((> n 0)
-   (hanoi-solver (- n 1) source dest aux towers)
-   (move-disk source dest towers)
-   (format t "move [~a] from [~a] to [~a] ~%" (nth 0 (get-tower towers 1)) source dest)
-   (hanoi-solver (- n 1) aux source dest towers)
-   )
+   ((= n 1)
+     (move-disk source dest towers))
+     (t
+       (hanoi-solver (- n 1) aux source dest 
+         (move-disk source dest
+         (hanoi-solver (- n 1) source dest aux towers))			
+       )
+     )
   )
 )
-                   
-
 
 (defun towers-of-hanoi(n)
-  (hanoi-solver n 1 2 3 (initialize-towers n))
+  (setq towers (initialize-towers n))
+  (format t "~% Initial tower configuration: ~a" towers)
+  (format t "~% Final tower configuration: ~a" (hanoi-solver n 1 2 3 towers))
 )
 
 (towers-of-hanoi 3)
 
 
-(setq towers '((3 2 1) NIL NIL))
-(move-disk 1 2 towers)
+
+
 
