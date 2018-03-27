@@ -1,11 +1,9 @@
-# Towers of Hanoi
-# Goal: to move 'n' discs from peg 'A' to peg 'C'
-# Restrictions: Cannot put a bigger disc ontop of a smaller disc
-# Algorithm:
-## 1. move n-1 dics from A -> B
-## 2. move disc n from A -> C
-## 3. move n-1 dics from B -> C
-
+; Towers of Hanoi
+; Restrictions: Cannot put a bigger disc on top of a smaller disc
+; Basic algorithm:
+; - move n-1 dics from 1 -> 2
+; - move disc n from 1 -> 3
+; - move n-1 dics from 2 -> 3
 
 (defun initialize-start-tower(start end)
   (loop for x from start to end
@@ -23,15 +21,11 @@
   (list tower-one '() '())
 )
 
-(defun reconstruct-towers(source aux dest)
-  (list source aux dest)
-)
-
-(defun update-tower(towers i tower)
+(defun replace-tower(towers i tower)
   (cond
-    ((= i 1) (reconstruct-towers tower (get-tower towers 2) (get-tower towers 3)))
-    ((= i 2) (reconstruct-towers (get-tower towers 1) tower (get-tower towers 3)))
-    ((= i 3) (reconstruct-towers (get-tower towers 1) (get-tower towers 2) tower))
+    ((= i 1) (list tower (get-tower towers 2) (get-tower towers 3)))
+    ((= i 2) (list (get-tower towers 1) tower (get-tower towers 3)))
+    ((= i 3) (list (get-tower towers 1) (get-tower towers 2) tower))
   )
 )    
 
@@ -42,25 +36,33 @@
 
 (defun pop-top(towers i)
   (setq param (get-tower towers i))
-  (update-tower towers i (cdr param))
- )
+  (replace-tower towers i (cdr param))
+)
 
 (defun push-top(towers i disk)
   (setq param (get-tower towers i))
-  (update-tower towers i (push disk param))
+  (replace-tower towers i (push disk param))
 )
-
+; moves the top disk from 'source' 
+; to 'dest', and returns the new state
 (defun move-disk(source dest towers) 
   (let 
-    ((top-disk (get-top towers source)) 
-     (towers-tmp (pop-top towers source)))
-     
-     (format t "~% move [~a] from [~a] to [~a]" top-disk source dest) 
-     (push-top towers-tmp dest top-disk)
-   )
+    (
+     (top-disk (get-top towers source))
+     (towers-tmp (pop-top towers source))
+    )
+    (format t "~% move [~a] from [~a] to [~a]" top-disk source dest) 
+    (push-top towers-tmp dest top-disk)
   )
+)
 
-               
+; Main recursive function 
+; Paramters:
+;	n      - number of disks
+; 	source - source tower, integer	
+;	aux    - auxillary tower, integer
+;	dest   - destination tower, integer
+;	towers - current state of towers                
  (defun hanoi-solver(n source aux dest towers)
   (cond
    ((= n 1)
@@ -74,15 +76,20 @@
   )
 )
 
+; recursive wrapper
 (defun towers-of-hanoi(n)
   (setq towers (initialize-towers n))
   (format t "~% Initial tower configuration: ~a" towers)
   (format t "~% Final tower configuration: ~a" (hanoi-solver n 1 2 3 towers))
 )
 
-(towers-of-hanoi 3)
-
-
-
-
-
+; runner
+(format t "~% Enter Number of Disks: ")
+(setq n (read))
+(cond
+  ((> n 10)
+    (format t "~% Too big."))
+    (t 
+      (towers-of-hanoi n)
+    )
+)
